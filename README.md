@@ -15,7 +15,6 @@
 - このフォルダに実行したいpdfファイルをresume.pdfという名前でペーストする
 - main.pyを実行すると同じフォルダにoutput_with_notes.pdfが作成される
   - main1-1.py：1枚に配布資料1ページ
-  
   - main1-2.py：1枚に配布資料2ページ
 
 
