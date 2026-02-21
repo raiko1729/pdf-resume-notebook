@@ -9,12 +9,34 @@
 - 下部にメモ用のドットをつける
 
 
-
 ## 使い方
 
 - このフォルダに実行したいpdfファイルをresume.pdfという名前でペーストする
-- main.pyを実行すると同じフォルダにoutput_with_notes.pdfが作成される
-  - main1-1.py：1枚に配布資料1ページ
-  - main1-2.py：1枚に配布資料2ページ
+- `main○.py`を実行すると同じフォルダにoutput_with_notes.pdfが作成される
+  - `main1.py`：1枚に配布資料1ページ
+  - `main2.py`：1枚に配布資料2ページ
 
 
+## こんな感じ
+
+もともとのパワポの配布資料こんな感じだとする．
+このまま印刷してもメモするところ少ないし，紙いっぱい消費しちゃう．
+
+<p align="center">
+  <img src="assets/resume1.png" width="48%" />
+  <img src="assets/resume2.png" width="48%" />
+</p>
+
+ここで，`main1.py`をやると以下のように
+
+- 配布資料がpdf上部にいく
+- ドットが追加される
+
+<p align="center">
+  <img src="assets/main1の出力1.png" width="48%" />
+  <img src="assets/main1の出力2.png" width="48%" />
+</p>
+
+あるいは，`main2.py`をやると一枚にまとめられる
+
+![main2の出力](assets/main2の出力.png)
