@@ -16,8 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Expose port (Cloud Run uses PORT environment variable, defaults to 8080 or as configured)
-EXPOSE 8080
+# Set default port (Render will override this with its own $PORT)
+ENV PORT 10000
+EXPOSE $PORT
 
-# ポート番号を環境変数 $PORT から取得して起動するように変更
+# Start command (using shell form to allow environment variable expansion)
 CMD gunicorn --bind 0.0.0.0:$PORT app:app

@@ -67,6 +67,6 @@ def index():
     return render_template('index.html')
 
 if __name__ == "__main__":
-    # RenderやGCPが指定するポートを優先。なければデフォルトで 8080
-    port = int(os.environ.get("PORT", 8080))
+    # Render (10000) や GCP (8080) 等の環境変数 PORT を優先
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
