@@ -19,5 +19,5 @@ COPY . .
 # Expose port (Cloud Run uses PORT environment variable, defaults to 8080 or as configured)
 EXPOSE 8080
 
-# Start command (using gunicorn)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+# ポート番号を環境変数 $PORT から取得して起動するように変更
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
