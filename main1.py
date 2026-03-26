@@ -5,8 +5,8 @@ from reportlab.lib.units import mm
 import io
 
 def pdf_with_notes(input_pdf_bytes, output_stream):
-    # PDFを画像に変換 (メモリ上のバイトデータから)
-    images = convert_from_bytes(input_pdf_bytes, dpi=150)
+    # PDFを画像に変換 (メモリ節約のためDPIを100に)
+    images = convert_from_bytes(input_pdf_bytes, dpi=100)
 
     width, height = A4  # A4サイズ (595 x 842 pt)
     c = canvas.Canvas(output_stream, pagesize=A4)

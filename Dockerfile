@@ -18,10 +18,9 @@ COPY . .
 
 # Set default port
 ENV PORT 10000
-EXPOSE $PORT
 
 # Gunicorn configuration:
-# --timeout: Increase to 120s for long PDF processing
-# --workers: Set to 1 to save memory on Render Free tier
-# --threads: Use threads instead of multiple workers for better memory efficiency
-CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --threads 4 app:app
+# --timeout: 180s for long PDF processing
+# --workers: 1 to save memory on Render Free tier
+# --threads: 2 for light concurrency
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --timeout 180 --workers 1 --threads 2 app:app"]
