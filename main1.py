@@ -1,19 +1,21 @@
-from pdf2image import convert_from_path
+from pdf2image import convert_from_bytes
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-import os
+import io
 
-def pdf_with_notes(input_pdf, output_pdf):
-    # PDFを画像に変換
-    images = convert_from_path(input_pdf, dpi=150)
+def pdf_with_notes(input_pdf_bytes, output_stream):
+    # PDFを画像に変換 (メモリ上のバイトデータから)
+    images = convert_from_bytes(input_pdf_bytes, dpi=150)
 
     width, height = A4  # A4サイズ (595 x 842 pt)
-    c = canvas.Canvas(output_pdf, pagesize=A4)
+    c = canvas.Canvas(output_stream, pagesize=A4)
 
     for i, img in enumerate(images):
-        img_path = f"temp_page_{i}.png"
-        img.save(img_path, "PNG")
+        # 画像もメモリ上のバッファに保存
+        img_buffer = io.BytesIO()
+        img.save(img_buffer, format="PNG")
+        img_buffer.seek(0)
 
         # --- ① 先にA4全面にドットを描画 ---
         spacing = 5 * mm
@@ -34,8 +36,11 @@ def pdf_with_notes(input_pdf, output_pdf):
         x = (width - target_width) / 2
         y = height/2 + (height/2 - target_height)
 
+        from reportlab.lib.utils import ImageReader
+        img_reader = ImageReader(img_buffer)
+
         c.drawImage(
-            img_path,
+            img_reader,
             x, y,
             width=target_width,
             height=target_height,
@@ -44,10 +49,13 @@ def pdf_with_notes(input_pdf, output_pdf):
         )
 
         c.showPage()
-        os.remove(img_path)
 
     c.save()
 
 
 if __name__ == "__main__":
-    pdf_with_notes("resume.pdf", "output_with_notes.pdf")
+    # テスト用
+    with open("resume.pdf", "rb") as f:
+        pdf_bytes = f.read()
+    with open("output_with_notes.pdf", "wb") as f:
+        pdf_with_notes(pdf_bytes, f)

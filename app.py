@@ -1,23 +1,14 @@
 from flask import Flask, request, render_template, send_file, flash, redirect, url_for
 import os
+import io
 from werkzeug.utils import secure_filename
 from main1 import pdf_with_notes as pdf_with_notes_1
 from main2 import pdf_with_notes as pdf_with_notes_2
-import tempfile
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # セッション管理用
+app.secret_key = os.environ.get('SECRET_KEY', 'your_default_secret_key')
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'outputs'
 ALLOWED_EXTENSIONS = {'pdf'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
-
-# フォルダ作成
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -43,32 +34,39 @@ def index():
             flash('処理タイプを選択してください')
             return redirect(request.url)
 
-        # ファイル保存
+        # 元のファイル名を安全にする
         filename = secure_filename(file.filename)
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(input_path)
-
-        # 出力ファイル名 (元のファイル名をベースにする)
         base_filename = os.path.splitext(filename)[0]
         output_filename = f"{base_filename}_with_notes_{process_type}.pdf"
-        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
 
-        # 処理実行
+        # メモリ上で処理
         try:
+            input_pdf_bytes = file.read()
+            output_buffer = io.BytesIO()
+
             if process_type == '1':
-                pdf_with_notes_1(input_path, output_path)
+                pdf_with_notes_1(input_pdf_bytes, output_buffer)
             else:
-                pdf_with_notes_2(input_path, output_path)
+                pdf_with_notes_2(input_pdf_bytes, output_buffer)
+
+            output_buffer.seek(0)
         except Exception as e:
             flash(f'処理中にエラーが発生しました: {str(e)}')
             return redirect(request.url)
 
-        # ダウンロード
-        response = send_file(output_path, as_attachment=True, download_name=output_filename)
+        # ダウンロード（メモリから直接送信）
+        response = send_file(
+            output_buffer,
+            as_attachment=True,
+            download_name=output_filename,
+            mimetype='application/pdf'
+        )
         response.set_cookie('fileDownload', 'true', path='/')
         return response
 
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # GCP (Cloud Run) 等では PORT 環境変数が指定されることが多い
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)

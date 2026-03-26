@@ -1,15 +1,16 @@
-from pdf2image import convert_from_path
+from pdf2image import convert_from_bytes
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-import os
+import io
+from reportlab.lib.utils import ImageReader
 
-def pdf_with_notes(input_pdf, output_pdf):
+def pdf_with_notes(input_pdf_bytes, output_stream):
     # PDFを画像に変換
-    images = convert_from_path(input_pdf, dpi=150)
+    images = convert_from_bytes(input_pdf_bytes, dpi=150)
 
     width, height = A4  # A4サイズ (595 x 842 pt)
-    c = canvas.Canvas(output_pdf, pagesize=A4)
+    c = canvas.Canvas(output_stream, pagesize=A4)
 
     # 2ページずつ処理
     for i in range(0, len(images), 2):
@@ -27,45 +28,47 @@ def pdf_with_notes(input_pdf, output_pdf):
 
         # --- ② 左側のページを配置 ---
         img_left = images[i]
-        img_path_left = f"temp_page_{i}.png"
-        img_left.save(img_path_left, "PNG")
+        img_buffer_left = io.BytesIO()
+        img_left.save(img_buffer_left, format="PNG")
+        img_buffer_left.seek(0)
 
         target_width = width * 0.5  # 左右に2つ配置するため50%に
         target_height = height * 0.7
 
         # 左側の配置位置（上詰め）
-        x_left = width * 0.00  # 左端から0%のマージン，調節する場合は右側のページの中央からどれだけ右側に配置するかの値も同様に変更する
-        y_left = height - target_height - (height * 0.05)  # 上端から5%のマージン
+        x_left = width * 0.00
+        y_left = height - target_height - (height * 0.05)
 
+        img_reader_left = ImageReader(img_buffer_left)
         c.drawImage(
-            img_path_left,
+            img_reader_left,
             x_left, y_left,
             width=target_width,
             height=target_height,
             preserveAspectRatio=True,
             anchor='nw'
         )
-        os.remove(img_path_left)
 
         # --- ③ 右側のページを配置（存在する場合） ---
         if i + 1 < len(images):
             img_right = images[i + 1]
-            img_path_right = f"temp_page_{i+1}.png"
-            img_right.save(img_path_right, "PNG")
+            img_buffer_right = io.BytesIO()
+            img_right.save(img_buffer_right, format="PNG")
+            img_buffer_right.seek(0)
 
             # 右側の配置位置（上詰め）
-            x_right = width * 0.5 + width * 0.00  # 中央から右側に配置
+            x_right = width * 0.5 + width * 0.00
             y_right = height - target_height - (height * 0.05)
 
+            img_reader_right = ImageReader(img_buffer_right)
             c.drawImage(
-                img_path_right,
+                img_reader_right,
                 x_right, y_right,
                 width=target_width,
                 height=target_height,
                 preserveAspectRatio=True,
                 anchor='nw'
             )
-            os.remove(img_path_right)
 
         c.showPage()
 
@@ -73,4 +76,8 @@ def pdf_with_notes(input_pdf, output_pdf):
 
 
 if __name__ == "__main__":
-    pdf_with_notes("resume.pdf", "output_with_notes.pdf")
+    # テスト用
+    with open("resume.pdf", "rb") as f:
+        pdf_bytes = f.read()
+    with open("output_with_notes.pdf", "wb") as f:
+        pdf_with_notes(pdf_bytes, f)

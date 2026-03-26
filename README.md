@@ -15,7 +15,7 @@
 - このフォルダに実行したいpdfファイルをresume.pdfという名前でペーストする
 - `main○.py`を実行すると同じフォルダにoutput_with_notes.pdfが作成される
   - `main1.py`：1枚に配布資料1ページ
-  - `main2.py`：1枚に配布資料2ページｇ
+  - `main2.py`：1枚に配布資料2ページ
 
 ### ウェブアプリ版
 - `python app.py`を実行してFlaskアプリを起動
