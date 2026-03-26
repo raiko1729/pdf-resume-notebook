@@ -5,6 +5,13 @@ from werkzeug.utils import secure_filename
 from main1 import pdf_with_notes as pdf_with_notes_1
 from main2 import pdf_with_notes as pdf_with_notes_2
 
+import logging
+import traceback
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_default_secret_key')
 
@@ -41,6 +48,7 @@ def index():
 
         # メモリ上で処理
         try:
+            logger.info(f"Processing PDF: {filename} with type {process_type}")
             input_pdf_bytes = file.read()
             output_buffer = io.BytesIO()
 
@@ -50,8 +58,12 @@ def index():
                 pdf_with_notes_2(input_pdf_bytes, output_buffer)
 
             output_buffer.seek(0)
+            logger.info("PDF conversion successful")
         except Exception as e:
-            flash(f'処理中にエラーが発生しました: {str(e)}')
+            error_msg = f'処理中にエラーが発生しました: {str(e)}'
+            logger.error(error_msg)
+            logger.error(traceback.format_exc())
+            flash(error_msg)
             return redirect(request.url)
 
         # ダウンロード（メモリから直接送信）
